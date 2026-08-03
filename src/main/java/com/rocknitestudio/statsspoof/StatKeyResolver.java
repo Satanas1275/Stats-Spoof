@@ -28,6 +28,8 @@ public final class StatKeyResolver {
             new DynamicCommandExceptionType(o -> Component.literal("Item inconnu : " + o));
     private static final DynamicCommandExceptionType UNKNOWN_ENTITY =
             new DynamicCommandExceptionType(o -> Component.literal("Type d'entite inconnu : " + o));
+    private static final DynamicCommandExceptionType UNKNOWN_CUSTOM_STAT =
+            new DynamicCommandExceptionType(o -> Component.literal("Stat custom inconnue : " + o));
 
     private StatKeyResolver() {
     }
@@ -35,7 +37,7 @@ public final class StatKeyResolver {
     public static Stat<?> resolve(String type, String rawId) throws CommandSyntaxException {
         Identifier id = parseId(rawId);
         return switch (type) {
-            case "custom" -> Stats.CUSTOM.get(id);
+            case "custom" -> Stats.CUSTOM.get(requireCustomStat(id));
             case "mined" -> Stats.BLOCK_MINED.get(requireBlock(id));
             case "crafted" -> Stats.ITEM_CRAFTED.get(requireItem(id));
             case "used" -> Stats.ITEM_USED.get(requireItem(id));
@@ -56,6 +58,10 @@ public final class StatKeyResolver {
 
     private static Block requireBlock(Identifier id) throws CommandSyntaxException {
         return BuiltInRegistries.BLOCK.getOptional(id).orElseThrow(() -> UNKNOWN_BLOCK.create(id));
+    }
+
+    private static Identifier requireCustomStat(Identifier id) throws CommandSyntaxException {
+        return BuiltInRegistries.CUSTOM_STAT.getOptional(id).orElseThrow(() -> UNKNOWN_CUSTOM_STAT.create(id));
     }
 
     private static Item requireItem(Identifier id) throws CommandSyntaxException {
