@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.rocknitestudio.statsspoof.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "StatsCounterMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
