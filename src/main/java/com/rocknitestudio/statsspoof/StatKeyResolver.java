@@ -4,7 +4,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.stats.Stat;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.EntityType;
@@ -33,7 +33,7 @@ public final class StatKeyResolver {
     }
 
     public static Stat<?> resolve(String type, String rawId) throws CommandSyntaxException {
-        ResourceLocation id = parseId(rawId);
+        Identifier id = parseId(rawId);
         return switch (type) {
             case "custom" -> Stats.CUSTOM.get(id);
             case "mined" -> Stats.BLOCK_MINED.get(requireBlock(id));
@@ -49,20 +49,20 @@ public final class StatKeyResolver {
     }
 
     /** Accepte aussi bien "jump" (=> minecraft:jump) que "monmod:un_truc". */
-    private static ResourceLocation parseId(String raw) {
+    private static Identifier parseId(String raw) {
         String full = raw.contains(":") ? raw : "minecraft:" + raw;
-        return ResourceLocation.parse(full);
+        return Identifier.parse(full);
     }
 
-    private static Block requireBlock(ResourceLocation id) throws CommandSyntaxException {
+    private static Block requireBlock(Identifier id) throws CommandSyntaxException {
         return BuiltInRegistries.BLOCK.getOptional(id).orElseThrow(() -> UNKNOWN_BLOCK.create(id));
     }
 
-    private static Item requireItem(ResourceLocation id) throws CommandSyntaxException {
+    private static Item requireItem(Identifier id) throws CommandSyntaxException {
         return BuiltInRegistries.ITEM.getOptional(id).orElseThrow(() -> UNKNOWN_ITEM.create(id));
     }
 
-    private static EntityType<?> requireEntityType(ResourceLocation id) throws CommandSyntaxException {
+    private static EntityType<?> requireEntityType(Identifier id) throws CommandSyntaxException {
         return BuiltInRegistries.ENTITY_TYPE.getOptional(id).orElseThrow(() -> UNKNOWN_ENTITY.create(id));
     }
 }

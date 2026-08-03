@@ -8,7 +8,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.rocknitestudio.statsspoof.StatKeyResolver;
 import com.rocknitestudio.statsspoof.StatSpoofManager;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -22,23 +22,23 @@ public final class StatsSpoofCommand {
     }
 
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
-        dispatcher.register(ClientCommandManager.literal("statsspoof")
-                .then(ClientCommandManager.literal("set").then(withValue(Operation.SET)))
-                .then(ClientCommandManager.literal("add").then(withValue(Operation.ADD)))
-                .then(ClientCommandManager.literal("remove").then(withValue(Operation.REMOVE)))
-                .then(ClientCommandManager.literal("clear")
-                        .then(ClientCommandManager.<FabricClientCommandSource>argument("type", StringArgumentType.word())
-                                .then(ClientCommandManager.<FabricClientCommandSource>argument("id", StringArgumentType.string())
+        dispatcher.register(ClientCommands.literal("statsspoof")
+                .then(ClientCommands.literal("set").then(withValue(Operation.SET)))
+                .then(ClientCommands.literal("add").then(withValue(Operation.ADD)))
+                .then(ClientCommands.literal("remove").then(withValue(Operation.REMOVE)))
+                .then(ClientCommands.literal("clear")
+                        .then(ClientCommands.argument("type", StringArgumentType.word())
+                                .then(ClientCommands.argument("id", StringArgumentType.string())
                                         .executes(StatsSpoofCommand::executeClear))))
-                .then(ClientCommandManager.literal("clearall")
+                .then(ClientCommands.literal("clearall")
                         .executes(StatsSpoofCommand::executeClearAll))
         );
     }
 
     private static RequiredArgumentBuilder<FabricClientCommandSource, String> withValue(Operation op) {
-        return ClientCommandManager.<FabricClientCommandSource>argument("type", StringArgumentType.word())
-                .then(ClientCommandManager.<FabricClientCommandSource>argument("id", StringArgumentType.string())
-                        .then(ClientCommandManager.<FabricClientCommandSource>argument("valeur", LongArgumentType.longArg())
+        return ClientCommands.argument("type", StringArgumentType.word())
+                .then(ClientCommands.argument("id", StringArgumentType.string())
+                        .then(ClientCommands.argument("valeur", LongArgumentType.longArg())
                                 .executes(ctx -> execute(ctx, op))));
     }
 
