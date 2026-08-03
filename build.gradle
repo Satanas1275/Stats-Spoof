@@ -1,36 +1,32 @@
 plugins {
-    id 'fabric-loom' version "${loom_version}"
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'maven-publish'
 }
 
 version = project.mod_version
 group = project.maven_group
 
-base {
-    archivesName = project.archives_base_name
-}
-
 repositories {
     // Ajoute ici tes repos custom si besoin (Gitea de Rocknite Studio, etc.)
-}
-
-loom {
-    // Mod client-only : on le declare comme tel pour eviter qu'il soit charge cote serveur.
-    // (fabric.mod.json porte aussi cette info via "environment": "client")
+    // Loom ajoute deja les repos essentiels pour Minecraft et ses libs.
 }
 
 dependencies {
+    // Minecraft 26.2 n'est plus obfusque : pas de bloc "mappings" a fournir,
+    // Loom compile directement contre le jar officiel (noms Mojang deja lisibles).
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Plus de remap => "implementation" classique, plus de "modImplementation".
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
 processResources {
-    inputs.property "version", project.version
+    def version = project.version
+    inputs.property "version", version
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand "version": version
     }
 }
 
@@ -40,4 +36,15 @@ tasks.withType(JavaCompile).configureEach {
 
 java {
     withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+    def projectName = project.name
+    inputs.property "projectName", projectName
+
+    from("LICENSE") {
+        rename { "${it}_$projectName" }
+    }
 }

@@ -64,6 +64,13 @@ pas besoin de committer le wrapper.
    point de départ, pas une garantie de dernière minute).
 3. `./gradlew build`
 
-Aucune dépendance à Yarn : `mappings loom.officialMojangMappings()` suffit puisque
-26.2 est distribué non-obfusqué. Java 25 est requis (26.1+ a fait passer Minecraft
-de Java 21 à Java 25), le `build.gradle` et le workflow CI ciblent JDK 25.
+Aucune dépendance à Yarn, et même plus besoin d'un bloc `mappings` du tout :
+depuis 26.1, Minecraft est distribué non-obfusqué avec les noms Mojang directement
+lisibles, donc Loom compile le jar tel quel. Ça implique aussi un changement d'id
+de plugin : `net.fabricmc.fabric-loom` (nouveau, pour les versions non-obfusquées)
+et non plus l'ancien `fabric-loom` / `net.fabricmc.fabric-loom-remap`. Les
+dépendances `fabric-loader` et `fabric-api` passent en `implementation` classique
+puisqu'il n'y a plus de remap à faire (`modImplementation` n'est plus nécessaire).
+
+Java 25 est requis depuis 26.1 (avant : Java 21), le `build.gradle` et le workflow
+CI ciblent JDK 25.
