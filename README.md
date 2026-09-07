@@ -1,46 +1,46 @@
 # StatsSpoof
 
-Mod client Fabric (MC 26.2 / Fabric Loader 0.19.3 / Loom 1.17) qui remplace uniquement
-les valeurs **affichées** sur l'écran des statistiques (touche stats en pause). Rien
-n'est écrit dans `stats/<uuid>.json`, rien n'est envoyé au serveur : c'est purement
-cosmétique côté client.
+Fabric client mod (MC 26.2 / Fabric Loader 0.19.3 / Loom 1.17) that only replaces the
+**displayed** values on the statistics screen (stats key from the pause menu). Nothing
+is written to `stats/<uuid>.json`, nothing is sent to the server: it's purely
+cosmetic on the client side.
 
-## Pourquoi ça marche sans toucher à StatsScreen
+## Why it works without touching StatsScreen
 
-Depuis que Minecraft n'est plus obfusqué (26.1+), on pourrait être tenté de mixin
-directement dans `StatsScreen` — mais sa structure interne (listes, entrées, lambdas)
-change souvent d'une version à l'autre et ces méthodes sont en grande partie privées
-et générées par le compilateur, donc fragiles comme cibles de mixin.
+Since Minecraft is no longer obfuscated (26.1+), one might be tempted to mixin
+directly into `StatsScreen` — but its internal structure (lists, entries, lambdas)
+changes often from one version to another and these methods are largely private and
+compiler-generated, making them fragile as mixin targets.
 
-À la place, on intercepte le point unique par lequel *tout* passe pour lire une stat :
-`StatsCounter#getValue(Stat<?>)`. L'écran, le HUD, les toasts d'unlock de recette...
-tout appelle cette méthode. Un seul mixin suffit donc, quel que soit l'onglet.
+Instead, we intercept the single point through which *everything* passes to read a
+stat: `StatsCounter#getValue(Stat<?>)`. The screen, the HUD, recipe unlock toasts...
+everything calls this method. So a single mixin is enough, regardless of the tab.
 
-**Garde-fou** : le mixin ne s'applique qu'à l'instance `StatsCounter` du joueur local
-côté client (`Minecraft.getInstance().player.getStats()`), vérifiée par identité
-d'objet. Même en solo, le `StatsCounter` du serveur intégré (utilisé pour les
-advancements et la sauvegarde) est une instance séparée en mémoire — jamais concernée.
+**Safeguard** : the mixin only applies to the local player's `StatsCounter` instance
+on the client side (`Minecraft.getInstance().player.getStats()`), checked by object
+identity. Even in single-player, the integrated server's `StatsCounter` (used for
+advancements and saving) is a separate instance in memory — never affected.
 
-## Commande
+## Command
 
 ```
-/statsspoof set <type> <id> <valeur>      # fixe la valeur affichée
-/statsspoof add <type> <id> <valeur>      # ajoute a la valeur actuellement affichee
-/statsspoof remove <type> <id> <valeur>   # soustrait a la valeur actuellement affichee
-/statsspoof clear <type> <id>             # retire l'override, revient a la vraie valeur
-/statsspoof clearall                      # retire tous les overrides
+/statsspoof set <type> <id> <value>       # sets the displayed value
+/statsspoof add <type> <id> <value>       # adds to the currently displayed value
+/statsspoof remove <type> <id> <value>    # subtracts from the currently displayed value
+/statsspoof clear <type> <id>             # removes the override, reverts to the real value
+/statsspoof clearall                      # removes all overrides
 ```
 
-`<type>` est un des types de stat vanilla : `custom`, `mined`, `crafted`, `used`,
+`<type>` is one of the vanilla stat types: `custom`, `mined`, `crafted`, `used`,
 `broken`, `picked_up`, `dropped`, `killed`, `killed_by`.
 
-`<id>` est l'identifiant vanilla concerné, avec ou sans namespace :
-- `custom` -> un stat custom, ex. `jump`, `deaths`, `play_time`, `walk_one_cm`
-- `mined` -> un bloc, ex. `stone`, `diamond_ore`
-- `crafted` / `used` / `broken` / `picked_up` / `dropped` -> un item, ex. `diamond_pickaxe`
-- `killed` / `killed_by` -> une entité, ex. `zombie`, `ender_dragon`
+`<id>` is the vanilla identifier concerned, with or without namespace:
+- `custom` -> a custom stat, e.g. `jump`, `deaths`, `play_time`, `walk_one_cm`
+- `mined` -> a block, e.g. `stone`, `diamond_ore`
+- `crafted` / `used` / `broken` / `picked_up` / `dropped` -> an item, e.g. `diamond_pickaxe`
+- `killed` / `killed_by` -> an entity, e.g. `zombie`, `ender_dragon`
 
-Exemples :
+Examples:
 ```
 /statsspoof set custom jump 999999
 /statsspoof add killed zombie 50
@@ -50,27 +50,27 @@ Exemples :
 
 ## CI (GitHub Actions)
 
-`.github/workflows/build.yml` compile le mod a chaque push/PR sur `main` et publie le
-jar en artifact (onglet Actions du repo). Si tu pousses un tag `vX.Y.Z`, il cree aussi
-une release GitHub avec le jar attache. Le repo n'embarque pas de `gradlew` : le
-workflow provisionne directement Gradle 9.5.1 via `gradle/actions/setup-gradle`, donc
-pas besoin de committer le wrapper.
+`.github/workflows/build.yml` compiles the mod on every push/PR to `main` and
+publishes the jar as an artifact (Actions tab of the repo). If you push a `vX.Y.Z`
+tag, it also creates a GitHub release with the jar attached. The repo doesn't bundle
+`gradlew`: the workflow provisions Gradle 9.5.1 directly via
+`gradle/actions/setup-gradle`, so there's no need to commit the wrapper.
 
 ## Build
 
-1. Copie ce dossier dans ton environnement (comme `create_skyworks` ou `HyprRank`).
-2. Vérifie les derniers builds exacts de Fabric API pour 26.2 sur
-   https://fabricmc.net/develop (le `fabric_version` dans `gradle.properties` est un
-   point de départ, pas une garantie de dernière minute).
+1. Copy this folder into your environment (like `create_skyworks` or `HyprRank`).
+2. Check the latest exact Fabric API builds for 26.2 on
+   https://fabricmc.net/develop (the `fabric_version` in `gradle.properties` is a
+   starting point, not a last-minute guarantee).
 3. `./gradlew build`
 
-Aucune dépendance à Yarn, et même plus besoin d'un bloc `mappings` du tout :
-depuis 26.1, Minecraft est distribué non-obfusqué avec les noms Mojang directement
-lisibles, donc Loom compile le jar tel quel. Ça implique aussi un changement d'id
-de plugin : `net.fabricmc.fabric-loom` (nouveau, pour les versions non-obfusquées)
-et non plus l'ancien `fabric-loom` / `net.fabricmc.fabric-loom-remap`. Les
-dépendances `fabric-loader` et `fabric-api` passent en `implementation` classique
-puisqu'il n'y a plus de remap à faire (`modImplementation` n'est plus nécessaire).
+No Yarn dependency, and not even a `mappings` block is needed anymore: since 26.1,
+Minecraft is distributed non-obfuscated with the Mojang names directly readable, so
+Loom compiles the jar as is. This also means a plugin id change:
+`net.fabricmc.fabric-loom` (new, for non-obfuscated versions) instead of the old
+`fabric-loom` / `net.fabricmc.fabric-loom-remap`. The `fabric-loader` and
+`fabric-api` dependencies use classic `implementation` since there's no remap to do
+(`modImplementation` is no longer needed).
 
-Java 25 est requis depuis 26.1 (avant : Java 21), le `build.gradle` et le workflow
-CI ciblent JDK 25.
+Java 25 is required since 26.1 (before: Java 21); the `build.gradle` and CI workflow
+target JDK 25.

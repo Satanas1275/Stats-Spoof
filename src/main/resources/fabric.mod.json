@@ -3,10 +3,10 @@
   "id": "statsspoof",
   "version": "${version}",
   "name": "StatsSpoof",
-  "description": "Remplace uniquement les valeurs affichees sur l'ecran des statistiques (aucune modification du fichier de sauvegarde).",
-  "authors": ["Satanas1275 / Rocknite Studio"],
+  "description": "Only overrides the displayed values on the statistics screen (no modification of the save file).",
+  "authors": ["Satanas1275"],
   "contact": {},
-  "license": "MIT",
+  "license": "CC-BY-NC-4.0",
 
   "environment": "client",
   "entrypoints": {
